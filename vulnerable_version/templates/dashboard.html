@@ -13,8 +13,9 @@
 <div class="container">
     <h1 class="mt-4">Chlorine Dosing Control Panel</h1>
     <a href="/logs" class="btn btn-info">View Logs</a> | 
-    <a href="/report_preview?tank_name=MainTank" class="btn btn-secondary">Report Preview (SSTI)</a> |
-    <a href="/logout" class="btn btn-warning">Logout</a>
+<a href="/report_preview?tank_name=MainTank" class="btn btn-secondary">Report Preview (SSTI)</a> |
+<a href="/monitor" class="btn btn-dark" target="_blank">🛡️ Security Monitor (SOC)</a> | 
+<a href="/logout" class="btn btn-warning">Logout</a>
 
     <div class="row mt-4">
         <div class="col-md-3 status-box {% if not status.system_active %}danger{% else %}normal{% endif %}">
