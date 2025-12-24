@@ -32,7 +32,7 @@ def check_for_attacks():
     ssti_patterns = ['{{', '}}', '__class__', '__base__', '__subclasses__', 'config.', 'request.']
     
     # SQLi: Common SQL injection payloads
-    sqli_patterns = ["'--", "' OR", "' UNION", "UNION SELECT", "DROP TABLE", "INSERT INTO", "xp_cmdshell", "1=1"]
+    sqli_patterns = ["'--", "' OR", "' UNION", "UNION SELECT", "DROP TABLE", "INSERT INTO", "xp_cmdshell", "1=1", ";--", "sleep(", "benchmark(", "waitfor delay", "@@version", "load_file"]
     
     # 2. Collect Data to Inspect
     data_to_check = []
