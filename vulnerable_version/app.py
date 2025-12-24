@@ -8,6 +8,13 @@ from monitoring.ids import init_monitoring_table, check_for_attacks, get_monitor
 app = Flask(__name__)
 app.secret_key = 'super_secret_key' # Required for session management
 
+# Add these lines to allow cross-site cookies for the vulnerable version
+app.config.update(
+    SESSION_COOKIE_SAMESITE=None,  # Must be None (not "None" as a string in some versions)
+    SESSION_COOKIE_SECURE=False,   # Must be False because we are on HTTP
+    SESSION_COOKIE_HTTPONLY=False  # Makes the cookie accessible (insecure)
+)
+
 # --- Database Connection Helper ---
 def get_db_connection():
     conn = sqlite3.connect('scada.db')
