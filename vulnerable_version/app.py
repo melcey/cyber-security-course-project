@@ -3,6 +3,8 @@ import sqlite3
 import os
 from datetime import datetime
 
+from monitoring.ids import init_monitoring_table, check_for_attacks, get_monitor_db
+
 app = Flask(__name__)
 app.secret_key = 'super_secret_key' # Required for session management
 
@@ -22,6 +24,16 @@ scada_status = {
     'safety_lock': 'Normal',   # System Status Message
     'system_active': True      # Boolean: Is system running?
 }
+
+# =====================================================
+# INTEGRATE MONITORING (MIDDLEWARE)
+# =====================================================
+
+# This function runs before EVERY request to the server.
+# It acts as a firewall/IDS.
+@app.before_request
+def security_check():
+    check_for_attacks() # Call logic from monitoring/ids.py
 
 # =====================================================
 # STANDARD ROUTES (Auth & Dashboard)
@@ -55,6 +67,18 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
+
+
+@app.route('/monitor')
+def monitor_dashboard():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    
+    # Fetch attack logs using the helper from the monitoring module
+    conn = get_monitor_db()
+    attacks = conn.execute('SELECT * FROM attack_logs ORDER BY id DESC').fetchall()
+    conn.close()
+    
+    return render_template('monitor.html', attacks=attacks)
 
 
 # =====================================================
