@@ -77,15 +77,23 @@ def check_for_attacks():
     
     if not detected_attack and request.method == 'POST' and request.path in critical_endpoints:
         referer = request.headers.get("Referer", "")
+        origin = request.headers.get("Origin", "")
         
-        # LOGIC: If Referer is empty OR does not contain our trusted domain
-        is_trusted = "127.0.0.1:5001" in referer or "localhost:5001" in referer
+        # LOGIC: Check if Referer/Origin matches the Host header dynamically
+        # This works regardless of deployment (localhost, IP, domain)
+        host = request.host # e.g., '127.0.0.1:5001' or 'my-scada.com'
         
-        if not referer or not is_trusted:
+        is_trusted = False
+        if referer:
+            if host in referer: is_trusted = True
+        elif origin:
+             if host in origin: is_trusted = True
+        
+        if not is_trusted:
             detected_attack = "CSRF Attempt"
             # Log what the referer actually was (or if it was missing)
-            ref_status = referer if referer else "MISSING (Potential Cross-Site/File Exploit)"
-            malicious_payload = f"Untrusted Source. Referer: {ref_status}"
+            ref_status = referer if referer else (origin if origin else "MISSING")
+            malicious_payload = f"Untrusted Source. Referer/Origin: {ref_status}"
 
     # 4. Log Attack if Detected
     if detected_attack:
