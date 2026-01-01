@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chlorine Dosing Panel</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .status-box {
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .danger {
+            background-color: #ffcccc;
+        }
+
+        .normal {
+            background-color: #ccffcc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-4">Chlorine Dosing Control Panel</h1>
+        <a href="/logs" class="btn btn-info">View Logs</a> |
+        <a href="/report_preview?tank_name=MainTank" class="btn btn-secondary">Report Preview (SSTI)</a> |
+        <a href="/monitor" class="btn btn-dark" target="_blank">🛡️ Security Monitor (SOC)</a> |
+        <a href="/logout" class="btn btn-warning">Logout</a>
+
+        <div class="row mt-4">
+            <div class="col-md-3 status-box {% if not status.system_active %}danger{% else %}normal{% endif %}">
+                <h3>System Status</h3>
+                <p><strong>{{ 'ACTIVE' if status.system_active else 'STOPPED' }}</strong></p>
+                <p>Lock: {{ status.safety_lock }}</p>
+                <p>Source: <b>{{ status.active_tank }} Tank</b></p>
+            </div>
+
+            <div
+                class="col-md-3 status-box {% if status.active_tank == 'Main' %}normal{% else %}bg-light text-muted{% endif %}">
+                <h3>Main Tank</h3>
+                <h1>{{ status.tank_level }}%</h1>
+                {% if status.active_tank == 'Main' %}<small class="text-success">● Active</small>{% endif %}
+
+                <div class="mt-2">
+                    <form action="/set_tank_level" method="POST" class="form-inline justify-content-center">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="tank_type" value="main">
+                        <div class="input-group">
+                            <input type="number" name="level_value" class="form-control form-control-sm"
+                                style="width: 60px;" min="0" max="100" placeholder="%" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary btn-sm">Refill</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div
+                class="col-md-3 status-box {% if status.active_tank == 'Backup' %}normal{% else %}bg-light text-muted{% endif %}">
+                <h3>Backup Tank</h3>
+                <h1>{{ status.backup_tank_level }}%</h1>
+                {% if status.active_tank == 'Backup' %}<small class="text-success">● Active</small>{% endif %}
+
+                <div class="mt-2">
+                    <form action="/set_tank_level" method="POST" class="form-inline justify-content-center">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="tank_type" value="backup">
+                        <div class="input-group">
+                            <input type="number" name="level_value" class="form-control form-control-sm"
+                                style="width: 60px;" min="0" max="100" placeholder="%" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-secondary btn-sm">Refill</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-3 status-box normal">
+                <h3>Injection Rate</h3>
+                <h1>{{ status.injection_rate }} ml/min</h1>
+                <div class="mt-2">
+                    <form action="/change_rate" method="POST" style="display:inline-block;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="decrease">
+                        <button type="submit" class="btn btn-outline-dark btn-sm">- 2</button>
+                    </form>
+                    <form action="/change_rate" method="POST" style="display:inline-block;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="increase">
+                        <button type="submit" class="btn btn-outline-dark btn-sm">+ 2</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <h3>Emergency Controls</h3>
+
+                {% if status.system_active %}
+                <form action="/emergency_stop" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-danger btn-lg">EMERGENCY STOP</button>
+                </form>
+
+                {% else %}
+                <div class="btn-group">
+                    <form action="/start_system" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn btn-success btn-lg mr-2">RESTART SYSTEM</button>
+                    </form>
+
+                    {% if status.active_tank != 'Backup' %}
+                    <form action="/switch_to_backup" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn btn-warning btn-lg">⚠ SWITCH TO BACKUP TANK</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="row mt-4 text-center">
+            <div class="col-md-12">
+                <p>Admin Panel: <a href="/download_log?file=daily.log">Download Daily Log (Path Traversal Test)</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Monitoring Center</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta http-equiv="refresh" content="5"> 
+    <style>
+        .monitor-header { background-color: #2c3e50; color: white; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="monitor-header text-center">
+    <h1>🛡️ SCADA Security Operations Center (SOC)</h1>
+    <p>Live Threat Monitoring System</p>
+</div>
+
+<div class="container mt-4">
+    <a href="/" class="btn btn-outline-secondary mb-3">← Back to SCADA Panel</a>
+    
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            Detected Threats / Intrusions
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                        <th>Attack Type</th>
+                        <th>Target Endpoint</th>
+                        <th>Payload (Malicious Data)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attack in attacks %}
+                    <tr>
+                        <td>{{ attack['id'] }}</td>
+                        <td>{{ attack['timestamp'] }}</td>
+                        <td>{{ attack['ip_address'] }}</td>
+                        <td>
+                            <span class="badge badge-danger">{{ attack['attack_type'] }}</span>
+                        </td>
+                        <td><code>{{ attack['endpoint'] }}</code></td>
+                        <td style="word-break: break-all; color: #d9534f;">{{ attack['payload'] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-success">
+                            <h4>✅ No active threats detected. System is secure.</h4>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
