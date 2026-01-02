@@ -32,6 +32,8 @@ scada_status = {
     'system_active': True      # Boolean: Is system running?
 }
 
+from monitoring.ids import init_monitoring_table, check_for_attacks, get_monitor_db, is_ip_banned
+
 # =====================================================
 # INTEGRATE MONITORING (MIDDLEWARE)
 # =====================================================
@@ -40,6 +42,11 @@ scada_status = {
 # It acts as a firewall/IDS.
 @app.before_request
 def security_check():
+    # 1. Automated Defense: Block Banned IPs
+    if is_ip_banned(request.remote_addr):
+        return render_template_string("<h1>403 Forbidden</h1><p>Your IP has been flagged by the IDS and is temporarily banned.</p>"), 403
+
+    # 2. Monitor Traffic
     check_for_attacks() # Call logic from monitoring/ids.py
 
 # =====================================================
@@ -82,10 +89,22 @@ def monitor_dashboard():
     
     # Fetch attack logs using the helper from the monitoring module
     conn = get_monitor_db()
-    attacks = conn.execute('SELECT * FROM attack_logs ORDER BY id DESC').fetchall()
+    
+    # Check if we need to migrate schema (hacky fix for dev)
+    try:
+        attacks = conn.execute('SELECT * FROM attack_logs ORDER BY id DESC').fetchall()
+    except:
+        # If DB schema mismatch, just return empty list or handle gracefully
+        attacks = []
+        
+    try:
+        banned_ips = conn.execute('SELECT * FROM banned_ips ORDER BY timestamp DESC').fetchall()
+    except:
+        banned_ips = []
+        
     conn.close()
     
-    return render_template('monitor.html', attacks=attacks)
+    return render_template('monitor.html', attacks=attacks, banned_ips=banned_ips)
 
 
 # =====================================================
