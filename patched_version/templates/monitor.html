@@ -1,63 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Security Monitoring Center</title>
+    <title>SCADA Security Monitor (SOC)</title>
+    <meta http-equiv="refresh" content="5"> <!-- Auto-refresh every 5 seconds -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <meta http-equiv="refresh" content="5"> 
     <style>
-        .monitor-header { background-color: #2c3e50; color: white; padding: 20px; }
+        .critical { background-color: #ffdddd; font-weight: bold; }
+        .high { background-color: #ffeebb; }
+        .medium { background-color: #ffffcc; }
+        .low { background-color: #f0f0f0; }
     </style>
 </head>
-<body>
-
-<div class="monitor-header text-center">
-    <h1>🛡️ SCADA Security Operations Center (SOC)</h1>
-    <p>Live Threat Monitoring System</p>
-</div>
-
-<div class="container mt-4">
-    <a href="/" class="btn btn-outline-secondary mb-3">← Back to SCADA Panel</a>
-    
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            Detected Threats / Intrusions
+<body class="bg-dark text-white">
+    <div class="container-fluid mt-4">
+        <h1 class="text-center text-danger mb-4">🛡️ SCADA Intrusion Detection System (IDS)</h1>
+        
+        <!-- BANNED IPs SECTION -->
+        <div class="card bg-secondary mb-4">
+            <div class="card-header bg-danger text-white">
+                <h4>🚫 Automatically Banned IPs (Active Defense)</h4>
+            </div>
+            <div class="card-body bg-light text-dark p-0">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Reason</th>
+                            <th>Time Banned</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if banned_ips %}
+                            {% for ban in banned_ips %}
+                            <tr>
+                                <td class="font-weight-bold text-danger">{{ ban.ip_address }}</td>
+                                <td>{{ ban.reason }}</td>
+                                <td>{{ ban.timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="3" class="text-center">No IPs currently banned.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="card-body">
-            <table class="table table-hover table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Timestamp</th>
-                        <th>IP Address</th>
-                        <th>Attack Type</th>
-                        <th>Target Endpoint</th>
-                        <th>Payload (Malicious Data)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for attack in attacks %}
-                    <tr>
-                        <td>{{ attack['id'] }}</td>
-                        <td>{{ attack['timestamp'] }}</td>
-                        <td>{{ attack['ip_address'] }}</td>
-                        <td>
-                            <span class="badge badge-danger">{{ attack['attack_type'] }}</span>
-                        </td>
-                        <td><code>{{ attack['endpoint'] }}</code></td>
-                        <td style="word-break: break-all; color: #d9534f;">{{ attack['payload'] }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center text-success">
-                            <h4>✅ No active threats detected. System is secure.</h4>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+        <!-- ATTACK LOGS SECTION -->
+        <div class="card bg-secondary">
+            <div class="card-header">
+                <h4>Recent Security Alerts</h4>
+            </div>
+            <div class="card-body bg-light text-dark p-0">
+                <table class="table table-bordered table-hover mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Time</th>
+                            <th>Source IP</th>
+                            <th>Classification</th>
+                            <th>Attack Type</th>
+                            <th>Payload / Details</th>
+                            <th>Severity</th>
+                            <th>System Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attack in attacks %}
+                        <tr class="{{ attack.severity|lower if attack.severity else '' }}">
+                            <td>{{ attack.timestamp }}</td>
+                            <td>{{ attack.ip_address }}</td>
+                            <td><span class="badge badge-info">{{ attack.classification }}</span></td>
+                            <td class="font-weight-bold">{{ attack.attack_type }}</td>
+                            <td style="max-width: 300px; word-wrap: break-word; font-family: monospace;">
+                                {{ attack.payload }}
+                                <br><small class="text-muted">Target: {{ attack.endpoint }}</small>
+                            </td>
+                            <td>
+                                {% if attack.severity == 'Critical' %}
+                                    <span class="badge badge-danger">CRITICAL</span>
+                                {% elif attack.severity == 'High' %}
+                                    <span class="badge badge-warning">HIGH</span>
+                                {% elif attack.severity == 'Medium' %}
+                                    <span class="badge badge-warning">MED</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">LOW</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ attack.recommended_action }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" class="text-center">No threats detected yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="/" class="btn btn-outline-light">Back to Control Panel</a>
         </div>
     </div>
-</div>
-
 </body>
 </html>
