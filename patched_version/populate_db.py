@@ -3,8 +3,9 @@ import random
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
+import os
 # Veritabanı bağlantısı oluştur (yoksa yaratır)
-db = sqlite3.connect('scada.db')
+db = sqlite3.connect(os.getenv('SQLITE_PATH', 'scada.db'))
 cursor = db.cursor()
 
 # Tabloları oluştur

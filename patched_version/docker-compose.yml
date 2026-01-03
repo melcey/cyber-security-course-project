@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5002:5002"
+    environment:
+      # Your code should read this for the sqlite path
+      SQLITE_PATH: /scada.db
+    volumes:
+      - ./data:/data
