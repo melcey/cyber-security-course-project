@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from dataclasses import dataclass
 import secrets
+from werkzeug.security import check_password_hash
 
 from monitoring.ids import init_monitoring_table, check_for_attacks, get_monitor_db
 
@@ -75,8 +76,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        # Hardcoded credentials for simulation purposes
-        if username == 'admin' and password == 'admin123':
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        conn.close()
+        
+        if user and check_password_hash(user['password_hash'], password):
             session['logged_in'] = True
             return redirect(url_for('dashboard'))
         else:

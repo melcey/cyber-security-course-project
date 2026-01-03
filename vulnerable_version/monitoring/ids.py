@@ -16,7 +16,7 @@ def get_monitor_db():
 def init_monitoring_table():
     conn = get_monitor_db()
     try:
-        # Attack Logs
+        # Attack Logs - Schema updated to include classification, recommended_action, and severity
         conn.execute('''
             CREATE TABLE IF NOT EXISTS attack_logs (
                 id INTEGER PRIMARY KEY,
@@ -77,9 +77,9 @@ def is_ip_banned(ip):
 
 # MAIN DETECTION LOGIC
 def check_for_attacks():
-    # 0. Pre-Flight Check: Is IP already banned? (Optional optimization, but app.py handles enforcement)
+    # 0. Pre-Flight Check: Is IP already banned?
     if is_ip_banned(request.remote_addr):
-        return # Already handled by app.py middleware
+        return 
 
     detected_attack = None
     attack_type = ""
@@ -94,7 +94,7 @@ def check_for_attacks():
     path_patterns = ['../', '..\\', '/etc/passwd', 'win.ini', '.env']
     scan_patterns = ['.env', '.git', 'wp-admin', 'phpmyadmin', '.bak', '.old', '.cfg', 'admin.php']
     # Known Hacking Tools (User-Agents)
-    tool_patterns = ['sqlmap', 'nikto', 'burp', 'metasploit', 'nmap', 'python-requests', 'curl', 'wget', 'go-http-client']
+    tool_patterns = ['sqlmap', 'nikto', 'burp', 'metasploit', 'nmap', 'python-requests', 'curl', 'wget', 'go-http-client', 'postman']
 
     # 2. Collect Data
     data_to_check = []
@@ -125,7 +125,7 @@ def check_for_attacks():
                 severity = "High"
                 malicious_payload = f"Illegal Tank Level: {val}%"
         except:
-             pass # Non-integer values caught by SQLi/SSTI checks usually
+             pass 
 
     # 3c. Cookie Investigation
     if not detected_attack:
@@ -182,10 +182,10 @@ def check_for_attacks():
                     malicious_payload = data
                     break
             
-            # SQLi
+            # SQLi - Improved detection to handle URL encoding (+)
             if not detected_attack:
                 for pattern in sqli_patterns:
-                    if pattern.lower() in data.lower():
+                    if pattern.lower() in data.lower().replace('+', ' '):
                         detected_attack = "SQL Injection"
                         classification = "Database Injection"
                         action = "Automated Ban Triggered"
