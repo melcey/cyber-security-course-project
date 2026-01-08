@@ -3,8 +3,9 @@ import random
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
+import os
 # Veritabanı bağlantısı oluştur (yoksa yaratır)
-db = sqlite3.connect('scada.db')
+db = sqlite3.connect(os.getenv('SQLITE_PATH', 'scada.db'))
 cursor = db.cursor()
 
 # Tabloları oluştur
@@ -28,7 +29,10 @@ cursor.execute('''
 
 # Admin kullanıcısı ekle
 password_hash = generate_password_hash('admin123')
+password_hash2 = generate_password_hash('test123')
+
 cursor.execute("INSERT INTO users (id, username, password_hash) VALUES (1, 'admin', ?)", (password_hash,))
+cursor.execute("INSERT INTO users (id, username, password_hash) VALUES (2, 'test', ?)", (password_hash2,))
 
 # 100 adet rastgele log kaydı oluştur
 event_types = ['Injection Change', 'Tank Refill', 'Safety Lock Trigger', 'System Startup', 'Manual Override']

@@ -1,0 +1,48 @@
+services:
+  # --- VULNERABLE STACK ---
+  vuln-db:
+    image: alpine
+    container_name: cyber_vuln_db
+    # We use a command to keep this container alive so it counts as "1 of 4 containers"
+    command: tail -f /dev/null
+    volumes:
+      - vuln_data:/db
+
+  vuln-app:
+    build: ./vulnerable_version
+    container_name: cyber_vuln_app
+    ports:
+      - "5001:5001" # Host Port : Container Port
+    environment:
+      - SQLITE_PATH=/db/scada.db
+      - PORT_NUM=5001
+    depends_on:
+      - vuln-db
+    volumes:
+      # Mount the volume from the db container
+      - vuln_data:/db
+
+  # --- PATCHED STACK ---
+  patched-db:
+    image: alpine
+    container_name: cyber_patched_db
+    command: tail -f /dev/null
+    volumes:
+      - patched_data:/db
+
+  patched-app:
+    build: ./patched_version
+    container_name: cyber_patched_app
+    ports:
+      - "5002:5002"
+    environment:
+      - SQLITE_PATH=/db/scada.db
+      - PORT_NUM=5002
+    depends_on:
+      - patched-db
+    volumes:
+      - patched_data:/db
+
+volumes:
+  vuln_data:
+  patched_data:

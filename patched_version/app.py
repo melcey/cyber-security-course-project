@@ -17,10 +17,10 @@ app.config.update(
     SESSION_COOKIE_SECURE=False,   # Set to True if using HTTPS
     SESSION_COOKIE_HTTPONLY=True   # Prevents XSS from stealing cookies
 )
-
+DB_PATH = os.getenv("SQLITE_PATH", "scada.db")
 # --- Database Connection Helper ---
 def get_db_connection():
-    conn = sqlite3.connect('scada.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -359,4 +359,4 @@ if __name__ == '__main__':
 
     init_monitoring_table()
     # Running on port 5001 as per configuration
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
